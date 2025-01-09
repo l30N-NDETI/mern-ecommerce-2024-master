@@ -15,9 +15,6 @@ const shopReviewRouter = require("./routes/shop/review-routes");
 
 const commonFeatureRouter = require("./routes/common/feature-routes");
 
-//create a database connection -> u can also
-//create a separate file for this and then import/use that file here
-
 mongoose
   .connect("mongodb+srv://ndetimutuku12:0799137370@cluster0.z8ilr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
   .then(() => console.log("MongoDB connected"))
@@ -26,12 +23,21 @@ mongoose
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// CORS Configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://radiant-entremet-8fad79.netlify.app",
+];
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173", // For local development
-      "https://radiant-entremet-8fad79.netlify.app/", // Your Netlify frontend
-    ],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "DELETE", "PUT"],
     allowedHeaders: [
       "Content-Type",
@@ -46,17 +52,18 @@ app.use(
 
 app.use(cookieParser());
 app.use(express.json());
+
+// Define Routes
 app.use("/api/auth", authRouter);
 app.use("/api/admin/products", adminProductsRouter);
 app.use("/api/admin/orders", adminOrderRouter);
-
 app.use("/api/shop/products", shopProductsRouter);
 app.use("/api/shop/cart", shopCartRouter);
 app.use("/api/shop/address", shopAddressRouter);
 app.use("/api/shop/order", shopOrderRouter);
 app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
-
 app.use("/api/common/feature", commonFeatureRouter);
 
-app.listen(PORT, () => console.log(`Server is now running on port ${PORT}`));
+// Start Server
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
